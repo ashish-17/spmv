@@ -24,6 +24,8 @@ void getMulAtomic(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int bloc
 
 	int *d_cIndex, *d_rIndex;
 	float *d_val, *d_vec, *d_res;
+
+	memset(res->val, 0, sizeof(float)*res->nz);
 	cudaMalloc((void **)&d_cIndex, sizeof(int)*mat->nz);
 	cudaMalloc((void **)&d_rIndex, sizeof(int)*mat->nz);
 	cudaMalloc((void **)&d_val, sizeof(float)*mat->nz);
@@ -34,6 +36,7 @@ void getMulAtomic(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int bloc
 	cudaMemcpy(d_rIndex, mat->rIndex, mat->nz*sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(d_val, mat->val, mat->nz*sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(d_vec, vec->val, vec->nz*sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_res, res->val, res->nz*sizeof(float), cudaMemcpyHostToDevice);
 
 	/* Sample timing code */
 	struct timespec start, end;
