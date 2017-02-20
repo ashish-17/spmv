@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 import sys
 import subprocess
@@ -51,6 +51,6 @@ try:
     #their and our are implicitly closed here...
                 
 except subprocess.CalledProcessError as e:
-    print("Command '" + e.cmd + "' failed!")
+    print("Command '" + ' '.join(e.cmd) + "' failed!")
     print("Output:")
-    print(e.output)
+    print(e.output.decode('utf-8'))
