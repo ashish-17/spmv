@@ -1,27 +1,140 @@
 #include "genresult.cuh"
 #include <sys/time.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
+static void merge(void* data, int item_size, int l, int m, int r, int (*comparator)(void*, void*), void* aux_memory);
+static void mergeSortHelper(void* data, int item_size, int l, int r, int (*comparator)(void*, void*), void* aux_memory);
+
+void mergeSortSeq(void* data, int item_size, int n, int (*comparator)(void*, void*)) {
+	void* aux_memory = malloc(item_size*n);
+	mergeSortHelper(data, item_size, 0, n-1, comparator, aux_memory);
+	free(aux_memory);
+	aux_memory = NULL;
+}
+
+static void mergeSortHelper(void* data, int item_size, int l, int r, int (*comparator)(void*, void*), void* aux_memory) {
+	if (l < r) {
+		int m = l + (r-l) / 2;
+		mergeSortHelper(data, item_size, l, m, comparator, aux_memory);
+		mergeSortHelper(data, item_size, m+1, r, comparator, aux_memory);
+
+		merge(data, item_size, l, m, r, comparator, aux_memory);
+	}
+}
+
+static void merge(void* data, int item_size, int l, int m, int r, int (*comparator)(void*, void*), void* aux_memory) {
+	int idxLeftArray = 0, idxRightArray = 0, idxMainArray = l;
+	int nLeftArray = (m -l + 1), nRightArray = (r - m);
+
+	memcpy((char*)aux_memory + l*item_size, (char*)data + l*item_size, item_size*nLeftArray);
+	memcpy((char*)aux_memory + (m+1)*item_size, (char*)data + (m+1)*item_size, item_size*nRightArray);
+
+	char* left = (char*)aux_memory + l*item_size;
+	char* right = (char*)aux_memory + (m+1)*item_size;
+	while (idxLeftArray < nLeftArray && idxRightArray < nRightArray) {
+		if (comparator((void*)(left + idxLeftArray*item_size), ((void*)(right + idxRightArray*item_size)) ) < 0) {
+			memcpy(((void*)((char*)data + idxMainArray*item_size)), ((void*)(left + idxLeftArray*item_size)), item_size);
+			idxLeftArray++;
+		} else {
+			memcpy(((void*)((char*)data + idxMainArray*item_size)), ((void*)(right + idxRightArray*item_size)), item_size);
+			idxRightArray++;
+		}
+		idxMainArray++;
+	}
+
+	while (idxLeftArray < nLeftArray) {
+		memcpy(((void*)((char*)data + idxMainArray*item_size)), ((void*)(left + idxLeftArray*item_size)), item_size);
+		idxLeftArray++;
+		idxMainArray++;
+	}
+
+	while (idxRightArray < nRightArray) {
+		memcpy(((void*)((char*)data + idxMainArray*item_size)), ((void*)(right + idxRightArray*item_size)), item_size);
+		idxRightArray++;
+		idxMainArray++;
+	}
+}
 
 __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cIndex, const float *val, const float *vec, float *res) {
 
+	const int nzPerWarp = 1024;
 	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 	int threadCount = blockDim.x * gridDim.x;
-	int iter = nz % threadCount ? nz / threadCount + 1 : nz / threadCount;
+	int lane = threadId & (32 - 1);
+	int countWarps = threadCount % 32 ? threadCount / 32 + 1 : threadCount / 32;
+	int nzPerIter = countWarps * nzPerWarp;
+	int iter = nz % nzPerIter ? nz / nzPerIter + 1 : nz / nzPerIter;
+	extern __shared__ float shared_val[];
 
 	for (int i = 0; i < iter; ++i) {
-		int dataId = threadId + i*threadCount;
-		if (dataId < nz) {
-			float data = val[dataId];
-			int r = rIndex[dataId];
-			int c = cIndex[dataId];
-			float tmp = data * vec[c];
-			atomicAdd(&res[r], tmp);
+		int warpId = threadId / 32 + i*countWarps;
+		int nzStart = i*nzPerIter + warpId*nzPerWarp;
+		int nzEnd = i*nzPerIter + (warpId + 1)*nzPerWarp - 1;
+		int inc = blockDim.x < 32 ? blockDim.x : 32;
+		for (int j = nzStart + lane; j <= nzEnd && j < nz; j += inc) {
+			shared_val[j] = val[j] * vec[cIndex[j]];
+			
+			if (lane >= 1 && rIndex[j] == rIndex[j - 1]) {
+				shared_val[j] += shared_val[j-1];
+			}
+			if (lane >= 2 && rIndex[j] == rIndex[j - 2]) {
+				shared_val[j] += shared_val[j-2];
+			}
+			if (lane >= 4 && rIndex[j] == rIndex[j - 4]) {
+				shared_val[j] += shared_val[j-4];
+			}
+			if (lane >= 8 && rIndex[j] == rIndex[j - 8]) {
+				shared_val[j] += shared_val[j-8];
+			}
+			if (lane >= 16 && rIndex[j] == rIndex[j - 16]) {
+				shared_val[j] += shared_val[j-16];
+			}
+
+			__syncthreads();
+
+			if (((j < nz - 1) && rIndex[j] != rIndex[j+1]) || ((j == nz - 1) && rIndex[j] != rIndex[j - 1])) {
+				res[rIndex[j]] += shared_val[j];
+			}
 		}
 	}
 }
 
+typedef struct matrixData {
+	int rIndex;
+	int cIndex;
+	float val;
+} mat_t;
+
+static inline int matComparator(void* a, void*b) {
+	return (((mat_t*)a)->rIndex - ((mat_t*)b)->rIndex);
+}
+
+void sort_matrix(MatrixInfo *mat) {
+	printf("Sorting the matrix rowwise..\n");
+	mat_t *mem = (mat_t*)malloc(sizeof(mat_t)*mat->nz);
+	for (int i = 0; i < mat->nz; ++i) {
+		mem[i].rIndex = mat->rIndex[i];
+		mem[i].cIndex = mat->cIndex[i];
+		mem[i].val = mat->val[i];
+	}
+
+	mergeSortSeq(mem, sizeof(mat_t), mat->nz, matComparator);
+
+	for (int i = 0; i < mat->nz; ++i) {
+		mat->rIndex[i] = mem[i].rIndex;
+		mat->cIndex[i] = mem[i].cIndex;
+		mat->val[i] = mem[i].val;
+	}
+
+	free(mem);
+}
+
 void getMulScan(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockSize, int blockNum){
 	/*Allocate here...*/
+
+	sort_matrix(mat);
 
 	int *d_cIndex, *d_rIndex;
 	float *d_val, *d_vec, *d_res;
@@ -44,7 +157,7 @@ void getMulScan(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockS
 	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
 	/*Invoke kernels...*/
-	getMulAtomic_kernel<<<blockNum, blockSize>>>(mat->nz, d_rIndex, d_cIndex, d_val, d_vec, d_res);
+	getMulAtomic_kernel<<<blockNum, blockSize, mat->nz*sizeof(float)>>>(mat->nz, d_rIndex, d_cIndex, d_val, d_vec, d_res);
 	cudaDeviceSynchronize();
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &end);

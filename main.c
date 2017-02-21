@@ -80,7 +80,7 @@ int verify(const int nz, const int M, const int *rIndex, const int *cIndex, cons
 		float l = correct[i] > 0 ? correct[i] : -1*correct[i];
 		float m = res[i] > 0 ? res[i] : -1*res[i];
 		float k = l - m > 0 ? l - m : m - l;
-		if (k > .01) {
+		if (k > .1) {
 			o++;
 		}
 	}
