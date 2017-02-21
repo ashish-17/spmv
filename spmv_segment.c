@@ -58,6 +58,8 @@ static void merge(void* data, int item_size, int l, int m, int r, int (*comparat
 }
 
 __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cIndex, const float *val, const float *vec, float *res) {
+	
+	extern __shared__ float shared_val[];
 
 	const int nzPerWarp = 1024;
 	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -66,13 +68,14 @@ __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cI
 	int countWarps = threadCount % 32 ? threadCount / 32 + 1 : threadCount / 32;
 	int nzPerIter = countWarps * nzPerWarp;
 	int iter = nz % nzPerIter ? nz / nzPerIter + 1 : nz / nzPerIter;
-	extern __shared__ float shared_val[];
 
-	for (int i = 0; i < iter; ++i) {
+	res[0] = 555;
+	/*for (int i = 0; i < iter; ++i) {
 		int warpId = threadId / 32 + i*countWarps;
 		int nzStart = i*nzPerIter + warpId*nzPerWarp;
 		int nzEnd = i*nzPerIter + (warpId + 1)*nzPerWarp - 1;
 		int inc = blockDim.x < 32 ? blockDim.x : 32;
+		res[i] += 1;
 		for (int j = nzStart + lane; j <= nzEnd && j < nz; j += inc) {
 			shared_val[j] = val[j] * vec[cIndex[j]];
 			
@@ -98,7 +101,7 @@ __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cI
 				res[rIndex[j]] += shared_val[j];
 			}
 		}
-	}
+	}*/
 }
 
 typedef struct matrixData {
@@ -157,7 +160,7 @@ void getMulScan(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockS
 	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
 	/*Invoke kernels...*/
-	getMulAtomic_kernel<<<blockNum, blockSize, mat->nz*sizeof(float)>>>(mat->nz, d_rIndex, d_cIndex, d_val, d_vec, d_res);
+	putProduct_kernel<<<blockNum, blockSize/*, mat->nz*sizeof(float)*/>>>(mat->nz, d_rIndex, d_cIndex, d_val, d_vec, d_res);
 	cudaDeviceSynchronize();
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
@@ -165,7 +168,7 @@ void getMulScan(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockS
 
 	/*Deallocate.*/
 	cudaMemcpy(res->val, d_res, res->nz*sizeof(float), cudaMemcpyDeviceToHost);
-
+	
 	cudaFree(d_cIndex);
 	cudaFree(d_rIndex);
 	cudaFree(d_val);
