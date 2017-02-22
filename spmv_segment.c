@@ -58,8 +58,8 @@ static void merge(void* data, int item_size, int l, int m, int r, int (*comparat
 }
 
 __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cIndex, const float *val, const float *vec, float *res) {
-	
-	extern __shared__ float shared_val[];
+
+	__shared__ float shared_val[1024];
 
 	const int nzPerWarp = 1024;
 	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -69,39 +69,40 @@ __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cI
 	int nzPerIter = countWarps * nzPerWarp;
 	int iter = nz % nzPerIter ? nz / nzPerIter + 1 : nz / nzPerIter;
 
-	res[0] = 555;
-	/*for (int i = 0; i < iter; ++i) {
+	for (int i = 0; i < iter; ++i) {
 		int warpId = threadId / 32 + i*countWarps;
-		int nzStart = i*nzPerIter + warpId*nzPerWarp;
-		int nzEnd = i*nzPerIter + (warpId + 1)*nzPerWarp - 1;
+		int nzStart = warpId*nzPerWarp;
+		int nzEnd = nzStart + nzPerWarp - 1;
 		int inc = blockDim.x < 32 ? blockDim.x : 32;
-		res[i] += 1;
+
+		shared_val[threadIdx.x] = 0;
 		for (int j = nzStart + lane; j <= nzEnd && j < nz; j += inc) {
-			shared_val[j] = val[j] * vec[cIndex[j]];
-			
+			shared_val[threadIdx.x] = val[j] * vec[cIndex[j]];
+			__syncthreads();
+
 			if (lane >= 1 && rIndex[j] == rIndex[j - 1]) {
-				shared_val[j] += shared_val[j-1];
+				shared_val[threadIdx.x] += shared_val[threadIdx.x-1];
 			}
 			if (lane >= 2 && rIndex[j] == rIndex[j - 2]) {
-				shared_val[j] += shared_val[j-2];
+				shared_val[threadIdx.x] += shared_val[threadIdx.x-2];
 			}
 			if (lane >= 4 && rIndex[j] == rIndex[j - 4]) {
-				shared_val[j] += shared_val[j-4];
+				shared_val[threadIdx.x] += shared_val[threadIdx.x-4];
 			}
 			if (lane >= 8 && rIndex[j] == rIndex[j - 8]) {
-				shared_val[j] += shared_val[j-8];
+				shared_val[threadIdx.x] += shared_val[threadIdx.x-8];
 			}
 			if (lane >= 16 && rIndex[j] == rIndex[j - 16]) {
-				shared_val[j] += shared_val[j-16];
+				shared_val[threadIdx.x] += shared_val[threadIdx.x-16];
 			}
 
 			__syncthreads();
 
-			if (((j < nz - 1) && rIndex[j] != rIndex[j+1]) || ((j == nz - 1) && rIndex[j] != rIndex[j - 1])) {
-				res[rIndex[j]] += shared_val[j];
+			if (((j < nz - 1) && rIndex[j] != rIndex[j+1]) || (j % 32 == 31 || j == nz - 1)) {
+				atomicAdd(&res[rIndex[j]],  shared_val[threadIdx.x]);
 			}
 		}
-	}*/
+	}
 }
 
 typedef struct matrixData {
@@ -124,6 +125,14 @@ void sort_matrix(MatrixInfo *mat) {
 	}
 
 	mergeSortSeq(mem, sizeof(mat_t), mat->nz, matComparator);
+
+	// Verify sort
+	printf("Verifying sort\n");
+	for (int i = 1; i < mat->nz; ++i) {
+		if (mem[i-1].rIndex > mem[i].rIndex) {
+			printf("Sort Error \n");
+		}
+	}
 
 	for (int i = 0; i < mat->nz; ++i) {
 		mat->rIndex[i] = mem[i].rIndex;
@@ -160,7 +169,7 @@ void getMulScan(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockS
 	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
 	/*Invoke kernels...*/
-	putProduct_kernel<<<blockNum, blockSize/*, mat->nz*sizeof(float)*/>>>(mat->nz, d_rIndex, d_cIndex, d_val, d_vec, d_res);
+	putProduct_kernel<<<blockNum, blockSize>>>(mat->nz, d_rIndex, d_cIndex, d_val, d_vec, d_res);
 	cudaDeviceSynchronize();
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
@@ -168,7 +177,7 @@ void getMulScan(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockS
 
 	/*Deallocate.*/
 	cudaMemcpy(res->val, d_res, res->nz*sizeof(float), cudaMemcpyDeviceToHost);
-	
+
 	cudaFree(d_cIndex);
 	cudaFree(d_rIndex);
 	cudaFree(d_val);
