@@ -1,6 +1,8 @@
 #include "genresult.cuh"
 #include <sys/time.h>
 
+extern void sort_matrix(MatrixInfo *mat);
+
 /* Put your own kernel(s) here*/
 __global__ void design_kernel(const int nz, const int *rIndex, const int *cIndex, const float *val, const float *vec, float *res) {
 
@@ -22,6 +24,8 @@ __global__ void design_kernel(const int nz, const int *rIndex, const int *cIndex
 
 void getMulDesign(MatrixInfo * mat, MatrixInfo * vec, MatrixInfo * res, int blockSize, int blockNum){
 	/*Allocate here...*/
+	
+	sort_matrix(mat);
 
 	int *d_cIndex, *d_rIndex;
 	float *d_val, *d_vec, *d_res;

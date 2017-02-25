@@ -127,12 +127,12 @@ void sort_matrix(MatrixInfo *mat) {
 	mergeSortSeq(mem, sizeof(mat_t), mat->nz, matComparator);
 
 	// Verify sort
-	printf("Verifying sort\n");
+	/*printf("Verifying sort\n");
 	for (int i = 1; i < mat->nz; ++i) {
 		if (mem[i-1].rIndex > mem[i].rIndex) {
 			printf("Sort Error \n");
 		}
-	}
+	}*/
 
 	for (int i = 0; i < mat->nz; ++i) {
 		mat->rIndex[i] = mem[i].rIndex;
