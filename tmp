@@ -1,0 +1,9 @@
+Reading matrix from matrices/circuit5M_dc.mtx
+Reading vector from matrices/circuit5M_dc.vec
+Reordering the matrix by frequency..
+Atomic Kernel Time: 52992 micro-seconds
+Verifying...
+Yours - -0.000002, correct - -0.000003, Relative error - 0.011905
+Yours - -0.000000, correct - -0.000000, Relative error - 0.032258
+2 Error rows 
+So long and thank you for the fish!

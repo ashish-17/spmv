@@ -61,7 +61,7 @@ __global__ void putProduct_kernel(const int nz, const int *rIndex, const int *cI
 
 	__shared__ float shared_val[1024];
 
-	const int nzPerWarp = 1024;
+	const int nzPerWarp = 64;
 	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 	int threadCount = blockDim.x * gridDim.x;
 	int lane = threadId & (32 - 1);

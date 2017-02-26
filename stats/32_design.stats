@@ -1,110 +1,122 @@
 Reading matrix from matrices/cant.mtx
 Reading vector from matrices/cant.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 8374 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 25574 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/circuit5M_dc.mtx
 Reading vector from matrices/circuit5M_dc.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 58296 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 232508 micro-seconds
 Verifying...
-Yours - -0.000008, correct - -0.000008, Relative error - 0.011583
+Yours - -0.000000, correct - -0.000000, Relative error - 0.032258
 1 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/consph.mtx
 Reading vector from matrices/consph.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 12487 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 38353 micro-seconds
 Verifying...
-0 Error rows 
+Yours - 0.568359, correct - 0.574219, Relative error - 0.010204
+1 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/FullChip.mtx
 Reading vector from matrices/FullChip.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 92975 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 332302 micro-seconds
 Verifying...
-Yours - -0.000000, correct - -0.000000, Relative error - 0.019271
-Yours - -0.000000, correct - -0.000000, Relative error - 0.037500
-Yours - -0.000000, correct - -0.000000, Relative error - 0.072917
-3 Error rows 
+Yours - -0.000000, correct - -0.000000, Relative error - 0.012802
+Yours - -0.000000, correct - -0.000000, Relative error - 0.012346
+Yours - 0.000000, correct - 0.000000, Relative error - 0.040000
+Yours - 0.000000, correct - 0.000000, Relative error - 0.500000
+Yours - -0.000000, correct - -0.000000, Relative error - 0.027863
+Yours - 0.000000, correct - 0.000000, Relative error - 0.024390
+Yours - -0.000000, correct - -0.000000, Relative error - 0.036627
+Yours - -0.000000, correct - -0.000000, Relative error - 0.035599
+Yours - 0.000000, correct - 0.000000, Relative error - 0.011695
+Yours - 0.000000, correct - 0.000000, Relative error - 0.019688
+Yours - -0.000000, correct - -0.000000, Relative error - 0.015912
+Yours - 0.000000, correct - 0.000000, Relative error - 0.016129
+12 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/mac_econ_fwd500.mtx
 Reading vector from matrices/mac_econ_fwd500.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 4635 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 15993 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/mc2depi.mtx
 Reading vector from matrices/mc2depi.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 6100 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 25513 micro-seconds
 Verifying...
-0 Error rows 
+Yours - 0.006836, correct - 0.007141, Relative error - 0.042735
+1 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/pdb1HYS.mtx
 Reading vector from matrices/pdb1HYS.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 9200 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 27849 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/pwtk.mtx
 Reading vector from matrices/pwtk.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 22847 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 72812 micro-seconds
 Verifying...
-Yours - 1.470241, correct - 1.511719, Relative error - 0.027437
+Yours - 1.476562, correct - 1.500000, Relative error - 0.015625
 1 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/rail4284.mtx
 Reading vector from matrices/rail4284.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 52955 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 152646 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/rma10.mtx
 Reading vector from matrices/rma10.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 9926 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 30136 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/scircuit.mtx
 Reading vector from matrices/scircuit.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 3371 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 12087 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/shipsec1.mtx
 Reading vector from matrices/shipsec1.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 15512 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 49378 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/turon_m.mtx
 Reading vector from matrices/turon_m.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 2872 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 11132 micro-seconds
 Verifying...
-0 Error rows 
+Yours - -0.000000, correct - -0.000000, Relative error - 0.018182
+1 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/watson_2.mtx
 Reading vector from matrices/watson_2.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 6779 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 22859 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
 Reading matrix from matrices/webbase-1M.mtx
 Reading vector from matrices/webbase-1M.vec
-Sorting the matrix rowwise..
-Atomic Kernel Time: 10218 micro-seconds
+Reordering the matrix by frequency..
+Atomic Kernel Time: 38332 micro-seconds
 Verifying...
 0 Error rows 
 So long and thank you for the fish!
