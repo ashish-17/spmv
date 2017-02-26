@@ -1,0 +1,7 @@
+Command to run -
+
+	./spmv -mat matrices/$(basename "$filename" .mtx).mtx -ivec matrices/$(basename "$filename" .mtx).vec -alg atomic -blockSize 32 -blockNum 512 >> stats/32_atomic.stats
+
+Command to run a script to produce all stats - 
+
+	./stats.sh
